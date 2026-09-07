@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /Shematic-Hub/admin.html
+
+Sitemap: https://away232323.github.io/Shematic-Hub/sitemap.xml
