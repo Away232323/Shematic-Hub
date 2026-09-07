@@ -33,7 +33,7 @@ function formatDate(value) {
 function filteredSchematics() {
   const query = state.search.trim().toLowerCase();
   const items = state.schematics.filter(item => {
-    const haystack = [item.title, item.description, item.category, item.minecraft_version]
+    const haystack = [item.title, item.description, item.category, item.minecraft_version, item.author_username]
       .filter(Boolean).join(' ').toLowerCase();
     const matchesSearch = !query || haystack.includes(query);
     const matchesCategory = state.category === 'all' || item.category === state.category;
@@ -51,6 +51,12 @@ function filteredSchematics() {
   return items;
 }
 
+function firstPreview(item) {
+  if (item.preview_url) return item.preview_url;
+  if (Array.isArray(item.gallery_urls) && item.gallery_urls.length) return item.gallery_urls[0];
+  return '';
+}
+
 function render() {
   const items = filteredSchematics();
   grid.innerHTML = '';
@@ -60,6 +66,7 @@ function render() {
 
   for (const item of items) {
     const node = template.content.cloneNode(true);
+    const card = node.querySelector('.schematic-card');
     const preview = node.querySelector('.preview');
     const fallback = node.querySelector('.preview-fallback');
     const category = node.querySelector('.category-badge');
@@ -76,8 +83,9 @@ function render() {
 
     if (Number(item.price || 0) > 0) price.classList.add('paid');
 
-    if (item.preview_url) {
-      preview.src = item.preview_url;
+    const previewUrl = firstPreview(item);
+    if (previewUrl) {
+      preview.src = previewUrl;
       preview.alt = `${item.title || 'Schematic'} Vorschau`;
       preview.addEventListener('load', () => fallback.classList.add('hidden'));
       preview.addEventListener('error', () => preview.classList.add('hidden'));
@@ -98,6 +106,21 @@ function render() {
       action.style.opacity = '.5';
       action.style.pointerEvents = 'none';
     }
+
+    card.tabIndex = 0;
+    card.setAttribute('role', 'link');
+    card.setAttribute('aria-label', `${item.title || 'Schematic'} ansehen`);
+    const openDetails = event => {
+      if (event?.target?.closest?.('.card-action')) return;
+      location.href = `schematic.html?id=${encodeURIComponent(item.id)}`;
+    };
+    card.addEventListener('click', openDetails);
+    card.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openDetails(event);
+      }
+    });
 
     grid.appendChild(node);
   }
