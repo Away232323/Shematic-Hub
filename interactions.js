@@ -1,5 +1,6 @@
 (() => {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.documentElement.style.setProperty('--muted', '#9cafa4');
   document.body.classList.add('page-enter');
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.body.classList.remove('page-enter');
@@ -15,12 +16,10 @@
   function installBranding() {
     const logo = getLogoDataUri();
     if (!logo) return;
-
     document.querySelectorAll('.brand-icon').forEach(el => {
       el.textContent = '';
       el.setAttribute('aria-hidden', 'true');
     });
-
     let favicon = document.querySelector('link[rel="icon"]');
     if (!favicon) {
       favicon = document.createElement('link');
@@ -136,6 +135,18 @@
     if (el && !el.classList.contains('sound-toggle')) playClick();
   }, true);
 
+  function navigateWithTransition(destination) {
+    if (!destination) return;
+    if (reducedMotion) {
+      location.href = destination;
+      return;
+    }
+    if (document.body.classList.contains('page-leave')) return;
+    document.body.classList.add('page-leave');
+    setTimeout(() => { location.href = destination; }, 205);
+  }
+  window.hubNavigate = navigateWithTransition;
+
   function isInternalNavigableLink(link) {
     if (!link || link.target === '_blank' || link.hasAttribute('download')) return false;
     const href = link.getAttribute('href');
@@ -148,17 +159,34 @@
 
   document.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const card = event.target.closest?.('.schematic-card');
+    if (card && !event.target.closest('.card-action')) {
+      const id = card.dataset.schematicId;
+      if (id) {
+        event.preventDefault();
+        event.stopPropagation();
+        navigateWithTransition(`schematic.html?id=${encodeURIComponent(id)}`);
+        return;
+      }
+    }
+
     const link = event.target.closest?.('a[href]');
     if (!isInternalNavigableLink(link)) return;
     event.preventDefault();
-    const destination = link.href;
-    if (reducedMotion) {
-      location.href = destination;
-      return;
-    }
-    document.body.classList.add('page-leave');
-    setTimeout(() => { location.href = destination; }, 205);
-  });
+    navigateWithTransition(link.href);
+  }, true);
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const card = event.target.closest?.('.schematic-card');
+    if (!card) return;
+    const id = card.dataset.schematicId;
+    if (!id) return;
+    event.preventDefault();
+    event.stopPropagation();
+    navigateWithTransition(`schematic.html?id=${encodeURIComponent(id)}`);
+  }, true);
 
   function setupReveals() {
     const targets = document.querySelectorAll(
