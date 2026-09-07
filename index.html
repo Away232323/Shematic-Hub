@@ -3,171 +3,202 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#080b0a" />
-  <title>Schematic Hub — Minecraft Schematics</title>
-  <meta name="description" content="Minecraft Schematics von Away23: Traps, Builds, Farms, Redstone und mehr für Litematica." />
+  <meta name="theme-color" content="#0d0f0e" />
+  <title>Schematic Hub</title>
+  <meta name="description" content="Minecraft Schematics für Litematica – Traps, Builds, Farms und mehr." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="site-glow glow-one"></div>
-  <div class="site-glow glow-two"></div>
-
   <header class="topbar">
-    <a class="brand" href="./" aria-label="Schematic Hub Startseite">
-      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="brand-copy"><strong>SCHEMATIC</strong><b>HUB</b></span>
-    </a>
-    <nav class="topnav">
-      <a href="#categories">Kategorien</a>
-      <a href="#schematics">Schematics</a>
-      <a href="#howto">Guide</a>
-      <a href="admin.html" class="admin-link"><span class="admin-dot"></span> Admin</a>
-    </nav>
+    <div class="nav-shell">
+      <a class="brand" href="./" aria-label="Schematic Hub Startseite">
+        <span class="brand-icon">S</span>
+        <span>SCHEMATIC <b>HUB</b></span>
+      </a>
+
+      <nav class="topnav">
+        <a href="#schematics">Entdecken</a>
+        <a href="#guide">Guide</a>
+        <a id="adminNav" class="hidden" href="admin.html">Upload</a>
+      </nav>
+
+      <div class="nav-account">
+        <button id="authButton" class="login-btn" type="button">Anmelden</button>
+        <div id="accountWrap" class="account-wrap hidden">
+          <button id="accountButton" class="account-button" type="button">
+            <span id="accountAvatar" class="account-avatar">A</span>
+            <span id="accountName">Account</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div id="accountPopover" class="account-popover hidden">
+            <div class="account-info">
+              <strong id="popoverName">Account</strong>
+              <span id="popoverEmail"></span>
+            </div>
+            <a id="popoverAdmin" class="hidden" href="admin.html">Schematic hochladen</a>
+            <button id="logoutButton" type="button">Abmelden</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 
   <main>
-    <section class="hero">
-      <div class="hero-grid"></div>
-      <div class="hero-content reveal">
-        <div class="hero-kicker"><span></span> CURATED MINECRAFT SCHEMATICS</div>
-        <h1>Dein nächster Build.<br><span>Nur einen Klick entfernt.</span></h1>
-        <p class="hero-copy">Traps, Builds, Farms und Redstone-Kreationen für Litematica. Clean präsentiert, schnell gefunden und direkt einsatzbereit.</p>
+    <section class="hero section-shell">
+      <div class="hero-copy-wrap">
+        <span class="eyebrow">MINECRAFT SCHEMATICS</span>
+        <h1>Builds finden.<br><span>Downloaden. Fertig.</span></h1>
+        <p>Traps, Builds, Farms und Redstone-Schematics für Litematica. Ohne unnötiges Zeug — einfach suchen, laden und nachbauen.</p>
         <div class="hero-actions">
-          <a class="button primary big" href="#schematics">Schematics entdecken <span>↗</span></a>
-          <a class="button ghost big" href="#howto">Wie funktioniert's?</a>
+          <a class="primary-btn" href="#schematics">Schematics ansehen</a>
+          <a class="secondary-btn" href="#guide">Wie geht das?</a>
         </div>
-        <div class="hero-trust">
+        <div class="hero-meta">
           <div><strong id="heroTotal">0</strong><span>Schematics</span></div>
           <div><strong>7</strong><span>Kategorien</span></div>
-          <div><strong>FREE–5€</strong><span>Preisbereich</span></div>
-        </div>
-      </div>
-
-      <div class="hero-showcase reveal delay-1" aria-hidden="true">
-        <div class="showcase-window">
-          <div class="window-top">
-            <div class="window-dots"><i></i><i></i><i></i></div>
-            <span>SCHEMATIC PREVIEW</span>
-            <span class="window-status"><i></i> READY</span>
-          </div>
-          <div class="world-preview">
-            <div class="world-grid"></div>
-            <div class="voxel voxel-1"></div>
-            <div class="voxel voxel-2"></div>
-            <div class="voxel voxel-3"></div>
-            <div class="voxel voxel-4"></div>
-            <div class="selection-line line-a"></div>
-            <div class="selection-line line-b"></div>
-            <div class="preview-label"><small>SELECTED</small><strong>3×3 PUSH PULL TRAP</strong></div>
-          </div>
-          <div class="window-footer">
-            <span><b>MC</b> 1.21.11</span>
-            <span><b>TYPE</b> LITEMATIC</span>
-            <span class="free-tag">FREE</span>
-          </div>
-        </div>
-        <div class="float-pill pill-a"><span>⚡</span><div><small>FAST</small><strong>1-Click Download</strong></div></div>
-        <div class="float-pill pill-b"><span>◆</span><div><small>COLLECTION</small><strong>Traps • Builds • More</strong></div></div>
-      </div>
-    </section>
-
-    <section class="category-section" id="categories">
-      <div class="section-shell">
-        <div class="section-heading reveal">
-          <div>
-            <p class="eyebrow">BROWSE BY CATEGORY</p>
-            <h2>Was willst du bauen?</h2>
-          </div>
-          <p class="section-copy">Spring direkt in die Kategorie, die du brauchst.</p>
-        </div>
-        <div class="category-showcase reveal">
-          <button class="category-tile" data-cat-target="Traps"><span class="cat-icon">⌁</span><div><strong>Traps</strong><small>Piston, PvP & more</small></div><b>→</b></button>
-          <button class="category-tile" data-cat-target="Builds"><span class="cat-icon">▦</span><div><strong>Builds</strong><small>Basen & Strukturen</small></div><b>→</b></button>
-          <button class="category-tile" data-cat-target="Farms"><span class="cat-icon">⌗</span><div><strong>Farms</strong><small>Effiziente Setups</small></div><b>→</b></button>
-          <button class="category-tile" data-cat-target="Redstone"><span class="cat-icon">◈</span><div><strong>Redstone</strong><small>Technische Builds</small></div><b>→</b></button>
-          <button class="category-tile" data-cat-target="PvP"><span class="cat-icon">✦</span><div><strong>PvP</strong><small>Combat Builds</small></div><b>→</b></button>
-          <button class="category-tile" data-cat-target="Decoration"><span class="cat-icon">◇</span><div><strong>Decoration</strong><small>Details & Deko</small></div><b>→</b></button>
+          <div><strong>FREE – 5€</strong><span>Preise</span></div>
         </div>
       </div>
     </section>
 
-    <section class="catalog" id="schematics">
-      <div class="section-heading reveal">
+    <section class="browse section-shell">
+      <div class="section-title-row">
         <div>
-          <p class="eyebrow">THE LIBRARY</p>
+          <span class="eyebrow">KATEGORIEN</span>
+          <h2>Was suchst du?</h2>
+        </div>
+      </div>
+      <div class="quick-categories">
+        <button data-cat-target="Traps">Traps</button>
+        <button data-cat-target="Builds">Builds</button>
+        <button data-cat-target="Farms">Farms</button>
+        <button data-cat-target="Redstone">Redstone</button>
+        <button data-cat-target="PvP">PvP</button>
+        <button data-cat-target="Decoration">Decoration</button>
+        <button data-cat-target="Other">Other</button>
+      </div>
+    </section>
+
+    <section class="catalog section-shell" id="schematics">
+      <div class="section-title-row catalog-title">
+        <div>
+          <span class="eyebrow">LIBRARY</span>
           <h2>Alle Schematics</h2>
         </div>
-        <div class="result-count" id="resultCount">0 Schematics</div>
+        <span id="resultCount" class="result-count">0 Schematics</span>
       </div>
 
-      <div class="catalog-panel reveal">
-        <div class="toolbar">
-          <label class="searchbox">
-            <span class="search-icon">⌕</span>
-            <input id="searchInput" type="search" placeholder="Schematic suchen..." autocomplete="off" />
-            <kbd>CTRL K</kbd>
-          </label>
-          <select id="categoryFilter" aria-label="Kategorie">
-            <option value="all">Alle Kategorien</option><option value="Traps">Traps</option><option value="Builds">Builds</option><option value="Farms">Farms</option><option value="Redstone">Redstone</option><option value="PvP">PvP</option><option value="Decoration">Decoration</option><option value="Other">Other</option>
-          </select>
-          <select id="priceFilter" aria-label="Preis"><option value="all">Alle Preise</option><option value="free">Nur Free</option><option value="paid">Paid</option></select>
-          <select id="sortFilter" aria-label="Sortierung"><option value="newest">Neueste zuerst</option><option value="name">Name A–Z</option><option value="priceAsc">Preis ↑</option><option value="priceDesc">Preis ↓</option></select>
-        </div>
-        <div class="category-chips" id="categoryChips">
-          <button class="chip active" data-category="all">Alle</button><button class="chip" data-category="Traps">Traps</button><button class="chip" data-category="Builds">Builds</button><button class="chip" data-category="Farms">Farms</button><button class="chip" data-category="Redstone">Redstone</button><button class="chip" data-category="PvP">PvP</button><button class="chip" data-category="Decoration">Decoration</button><button class="chip" data-category="Other">Other</button>
-        </div>
+      <div class="filterbar">
+        <label class="searchbox">
+          <span>⌕</span>
+          <input id="searchInput" type="search" placeholder="Schematic suchen..." autocomplete="off" />
+        </label>
+        <select id="categoryFilter" aria-label="Kategorie">
+          <option value="all">Alle Kategorien</option>
+          <option value="Traps">Traps</option>
+          <option value="Builds">Builds</option>
+          <option value="Farms">Farms</option>
+          <option value="Redstone">Redstone</option>
+          <option value="PvP">PvP</option>
+          <option value="Decoration">Decoration</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="priceFilter" aria-label="Preis">
+          <option value="all">Alle Preise</option>
+          <option value="free">Free</option>
+          <option value="paid">Paid</option>
+        </select>
+        <select id="sortFilter" aria-label="Sortierung">
+          <option value="newest">Neueste</option>
+          <option value="name">Name A–Z</option>
+          <option value="priceAsc">Preis ↑</option>
+          <option value="priceDesc">Preis ↓</option>
+        </select>
       </div>
 
       <div class="schematic-grid" id="schematicGrid"></div>
-      <div class="empty-state" id="emptyState" hidden>
-        <div class="empty-cube"><i></i><i></i><i></i></div>
-        <p class="eyebrow">NO RESULTS</p>
-        <h3>Noch nichts hier.</h3>
-        <p>Entweder passt kein Schematic zu deinem Filter oder der Hub wartet noch auf den ersten Upload.</p>
-        <a class="button ghost" href="admin.html">Zum Admin Panel</a>
+
+      <div id="emptyState" class="empty-state" hidden>
+        <h3>Noch keine Schematics.</h3>
+        <p>Hier erscheinen deine Uploads, sobald du die erste Schematic veröffentlichst.</p>
       </div>
     </section>
 
-    <section class="howto" id="howto">
-      <div class="section-heading reveal">
-        <div><p class="eyebrow">QUICK START</p><h2>Vom Download zum Build.</h2></div>
-        <p class="section-copy">In weniger als einer Minute bereit.</p>
+    <section class="guide section-shell" id="guide">
+      <div class="section-title-row">
+        <div>
+          <span class="eyebrow">GUIDE</span>
+          <h2>In 3 Schritten.</h2>
+        </div>
       </div>
-      <div class="steps">
-        <article class="reveal"><div class="step-number">01</div><div class="step-icon">↓</div><h3>Download</h3><p>Hol dir deine gewünschte <code>.litematic</code>, <code>.schem</code> oder <code>.schematic</code>.</p></article>
-        <article class="reveal delay-1"><div class="step-number">02</div><div class="step-icon">⌑</div><h3>In den Ordner</h3><p>Verschiebe die Datei nach <code>.minecraft/schematics</code>.</p></article>
-        <article class="reveal delay-2"><div class="step-number">03</div><div class="step-icon">▶</div><h3>In Litematica laden</h3><p>Load Schematics öffnen, auswählen, Placement erstellen — fertig.</p></article>
+      <div class="guide-grid">
+        <article><span>01</span><h3>Download</h3><p>Die gewünschte <code>.litematic</code> herunterladen.</p></article>
+        <article><span>02</span><h3>In den Ordner</h3><p>Datei nach <code>.minecraft/schematics</code> verschieben.</p></article>
+        <article><span>03</span><h3>Laden</h3><p>Litematica → Load Schematics → Placement erstellen.</p></article>
       </div>
-    </section>
-
-    <section class="creator-banner reveal">
-      <div><p class="eyebrow">BUILT BY AWAY23</p><h2>Neue Schematics.<br>Direkt hier.</h2></div>
-      <div class="creator-copy"><p>Der Hub wächst mit neuen Traps, Builds und Redstone-Kreationen. Keine unnötigen Umwege — einfach finden, laden und bauen.</p><a href="#schematics" class="text-link">Zum Katalog <span>→</span></a></div>
     </section>
   </main>
 
   <footer>
-    <a class="brand footer-brand" href="./"><span class="brand-mark"><i></i><i></i><i></i></span><span class="brand-copy"><strong>SCHEMATIC</strong><b>HUB</b></span></a>
-    <div class="footer-center"><span>© <span id="year"></span> Schematic Hub</span><span>•</span><span>Minecraft community project</span></div>
-    <a href="admin.html" class="footer-link">Owner Panel ↗</a>
+    <div class="section-shell footer-shell">
+      <span>© <span id="year"></span> Schematic Hub</span>
+      <span>Made by Away23</span>
+    </div>
   </footer>
 
   <template id="schematicCardTemplate">
     <article class="schematic-card">
       <div class="preview-wrap">
         <img class="preview" alt="" loading="lazy" />
-        <div class="preview-fallback"><div class="fallback-grid"></div><div class="fallback-cube"><i></i><i></i><i></i></div></div>
-        <div class="card-topline"><span class="category-badge"></span><span class="price-badge"></span></div>
+        <div class="preview-fallback">SCHEMATIC</div>
+        <span class="category-badge"></span>
+        <span class="price-badge"></span>
       </div>
-      <div class="card-body">
+      <div class="card-content">
         <div class="card-meta"><span class="version"></span><span class="date"></span></div>
         <h3 class="title"></h3>
         <p class="description"></p>
-        <div class="card-footer"><span class="file-type">LITEMATIC</span><a class="button card-action" target="_blank" rel="noopener"></a></div>
+        <div class="card-bottom">
+          <span class="file-type"></span>
+          <a class="card-action" target="_blank" rel="noopener"></a>
+        </div>
       </div>
     </article>
   </template>
 
+  <div id="authModal" class="auth-modal hidden" aria-hidden="true">
+    <div class="auth-backdrop" data-auth-close></div>
+    <div class="auth-card" role="dialog" aria-modal="true" aria-label="Account">
+      <button class="auth-close" type="button" data-auth-close>×</button>
+      <div class="auth-logo"><span class="brand-icon">S</span><strong>Schematic Hub</strong></div>
+      <h2>Willkommen.</h2>
+      <p class="auth-subtitle">Melde dich an oder erstelle kostenlos einen Account.</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" type="button" data-auth-tab="login">Anmelden</button>
+        <button class="auth-tab" type="button" data-auth-tab="register">Registrieren</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <label>E-Mail<input id="loginEmail" type="email" required autocomplete="email" placeholder="name@email.com" /></label>
+        <label>Passwort<input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Dein Passwort" /></label>
+        <button class="primary-btn full" type="submit">Anmelden</button>
+      </form>
+
+      <form id="registerForm" class="auth-form hidden">
+        <label>Benutzername<input id="registerUsername" type="text" required minlength="3" maxlength="24" autocomplete="username" placeholder="z. B. Away23" /></label>
+        <label>E-Mail<input id="registerEmail" type="email" required autocomplete="email" placeholder="name@email.com" /></label>
+        <label>Passwort<input id="registerPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Mindestens 6 Zeichen" /></label>
+        <button class="primary-btn full" type="submit">Account erstellen</button>
+      </form>
+
+      <div id="authMessage" class="auth-message hidden"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>
