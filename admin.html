@@ -4,102 +4,164 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0d0f0e" />
-  <title>Upload · Schematic Hub</title>
+  <title>Dashboard · Schematic Hub</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="community.css" />
 </head>
-<body class="admin-page">
+<body class="dashboard-page">
   <header class="topbar">
     <div class="nav-shell">
       <a class="brand" href="./"><span class="brand-icon">S</span><span>SCHEMATIC <b>HUB</b></span></a>
-      <nav class="topnav"><a href="./">Zurück zur Website</a></nav>
-      <div class="nav-account"><a class="secondary-btn" href="./">Zurück</a></div>
+      <nav class="topnav"><a href="./">Entdecken</a><a href="#myUploads">Meine Uploads</a><a id="rightsNav" class="hidden" href="#rights">Admin</a></nav>
+      <div class="nav-account"><a class="secondary-btn" href="./">Zur Website</a></div>
     </div>
   </header>
 
-  <main class="section-shell">
-    <section class="admin-hero">
-      <span class="eyebrow">OWNER PANEL</span>
-      <h1>Schematic hochladen</h1>
-      <p>Kein GitHub-Token mehr. Uploads laufen jetzt direkt über deinen Schematic-Hub-Account.</p>
+  <main class="section-shell dashboard-shell">
+    <section class="dashboard-hero">
+      <span class="eyebrow">DASHBOARD</span>
+      <h1>Deine Schematics.</h1>
+      <p>Jeder angemeldete Account kann Schematics veröffentlichen. Deine eigenen Uploads kannst du jederzeit bearbeiten.</p>
     </section>
 
-    <section id="adminLoading" class="admin-panel guard-card">
+    <section id="accountLoading" class="dashboard-card guard-card">
       <h2>Account wird geprüft…</h2>
       <p>Einen Moment.</p>
     </section>
 
-    <section id="adminDenied" class="admin-panel guard-card hidden">
-      <h2>Kein Admin-Zugriff</h2>
-      <p id="adminDeniedText">Du musst mit deinem Owner-Account angemeldet sein, um Schematics hochzuladen.</p>
+    <section id="accountDenied" class="dashboard-card guard-card hidden">
+      <h2>Du bist nicht angemeldet</h2>
+      <p>Zum Hochladen brauchst du einen kostenlosen Schematic-Hub-Account.</p>
       <a class="primary-btn" href="./?login=1">Anmelden</a>
     </section>
 
-    <div id="adminContent" class="admin-grid hidden">
-      <section class="admin-panel">
-        <form id="uploadForm">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="title">Name *</label>
-              <input id="title" class="form-control" required maxlength="80" placeholder="z. B. 3x3 Push Pull Trap" />
+    <div id="dashboardContent" class="hidden">
+      <div class="dashboard-top-grid">
+        <section class="dashboard-card upload-card">
+          <div class="dashboard-card-heading">
+            <div>
+              <span id="formEyebrow" class="eyebrow">NEUER UPLOAD</span>
+              <h2 id="formTitle">Schematic veröffentlichen</h2>
             </div>
-            <div class="form-group">
-              <label for="category">Kategorie *</label>
-              <select id="category" class="form-control" required>
-                <option>Traps</option><option>Builds</option><option>Farms</option><option>Redstone</option><option>PvP</option><option>Decoration</option><option>Other</option>
-              </select>
+            <button id="cancelEditBtn" class="secondary-btn hidden" type="button">Bearbeitung abbrechen</button>
+          </div>
+
+          <form id="uploadForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="title">Name *</label>
+                <input id="title" class="form-control" required maxlength="80" placeholder="z. B. 3x3 Push Pull Trap" />
+              </div>
+              <div class="form-group">
+                <label for="category">Kategorie *</label>
+                <select id="category" class="form-control" required>
+                  <option>Traps</option><option>Builds</option><option>Farms</option><option>Redstone</option><option>PvP</option><option>Decoration</option><option>Other</option>
+                </select>
+              </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label for="description">Beschreibung</label>
-            <textarea id="description" class="form-control" maxlength="500" placeholder="Kurz erklären, was die Schematic macht..."></textarea>
-          </div>
-
-          <div class="form-grid">
             <div class="form-group">
-              <label for="version">Minecraft Version</label>
-              <input id="version" class="form-control" maxlength="20" value="1.21.11" />
+              <label for="description">Beschreibung</label>
+              <textarea id="description" class="form-control" maxlength="2500" rows="7" placeholder="Erklär genauer, wie die Schematic funktioniert, wofür sie gedacht ist usw."></textarea>
+              <small>Diese Beschreibung wird vollständig auf der Detailseite angezeigt.</small>
             </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="version">Minecraft Version</label>
+                <input id="version" class="form-control" maxlength="20" value="1.21.11" />
+              </div>
+              <div class="form-group">
+                <label for="price">Preis (€) *</label>
+                <input id="price" class="form-control" type="number" min="0" max="5" step="0.5" value="0" required />
+                <small>0 = FREE, maximal 5 €.</small>
+              </div>
+            </div>
+
+            <div id="freeFields" class="form-group">
+              <label for="schematicFile">Schematic-Datei <span id="schematicRequiredMark">*</span></label>
+              <input id="schematicFile" class="form-control" type="file" accept=".litematic,.schem,.schematic" />
+              <small id="schematicHelp">.litematic, .schem oder .schematic · maximal 25 MB</small>
+            </div>
+
+            <div id="paidFields" class="form-group hidden">
+              <label for="purchaseUrl">Kauf-Link *</label>
+              <input id="purchaseUrl" class="form-control" type="url" placeholder="https://..." />
+              <small>Bei Paid wird die echte Schematic-Datei nicht öffentlich gespeichert.</small>
+            </div>
+
             <div class="form-group">
-              <label for="price">Preis (€) *</label>
-              <input id="price" class="form-control" type="number" min="0" max="5" step="0.5" value="0" required />
-              <small>0 = FREE, maximal 5 €.</small>
+              <label for="previewFiles">Bilder / Screenshots</label>
+              <input id="previewFiles" class="form-control" type="file" multiple accept="image/png,image/jpeg,image/webp" />
+              <small>Bis zu 8 Bilder. Das erste Bild wird als Cover verwendet.</small>
             </div>
-          </div>
 
-          <div id="freeFields" class="form-group">
-            <label for="schematicFile">Schematic-Datei *</label>
-            <input id="schematicFile" class="form-control" type="file" accept=".litematic,.schem,.schematic" />
-            <small>.litematic, .schem oder .schematic · maximal 25 MB</small>
-          </div>
+            <div id="existingGalleryWrap" class="form-group hidden">
+              <label>Aktuelle Bilder</label>
+              <div id="existingGallery" class="edit-gallery"></div>
+              <small>Klick auf „Entfernen“, wenn ein Bild beim Speichern gelöscht werden soll.</small>
+            </div>
 
-          <div id="paidFields" class="form-group hidden">
-            <label for="purchaseUrl">Kauf-Link *</label>
-            <input id="purchaseUrl" class="form-control" type="url" placeholder="https://..." />
-            <small>Bei Paid wird die echte Datei nicht öffentlich gespeichert.</small>
-          </div>
+            <div id="formNotice" class="notice hidden"></div>
 
-          <div class="form-group">
-            <label for="previewFile">Preview-Bild</label>
-            <input id="previewFile" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" />
-            <small>PNG, JPG oder WEBP · empfohlen 16:9</small>
-          </div>
+            <div class="dashboard-actions">
+              <button id="uploadBtn" class="primary-btn" type="submit">Schematic veröffentlichen</button>
+              <button id="resetBtn" class="secondary-btn" type="button">Zurücksetzen</button>
+            </div>
+          </form>
+        </section>
 
-          <div id="formNotice" class="notice hidden"></div>
+        <aside class="dashboard-card account-card">
+          <span class="eyebrow">DEIN ACCOUNT</span>
+          <div class="account-big-avatar" id="accountBigAvatar">A</div>
+          <h3 id="dashboardUsername">Account</h3>
+          <p id="dashboardEmail" class="muted-text"></p>
+          <span id="dashboardRole" class="role-pill">USER</span>
+          <p class="account-hint">Du kannst deine eigenen Schematics bearbeiten. Admins können zusätzlich alle Uploads löschen und Rechte verwalten.</p>
+        </aside>
+      </div>
 
-          <div class="admin-actions">
-            <button id="uploadBtn" class="primary-btn" type="submit">Schematic veröffentlichen</button>
-            <button class="secondary-btn" type="reset">Zurücksetzen</button>
-          </div>
-        </form>
+      <section id="myUploads" class="dashboard-section">
+        <div class="dashboard-section-heading">
+          <div><span class="eyebrow">MEINE UPLOADS</span><h2>Von dir veröffentlicht</h2></div>
+          <span id="myUploadCount" class="result-count">0</span>
+        </div>
+        <div id="myUploadsList" class="manage-list"></div>
+        <div id="myUploadsEmpty" class="manage-empty hidden">Du hast noch nichts hochgeladen.</div>
       </section>
 
-      <aside class="admin-panel">
-        <span class="eyebrow">ACCOUNT</span>
-        <h3 id="adminUsername">Owner</h3>
-        <p id="adminEmail" style="color:var(--muted);font-size:12px;word-break:break-all"></p>
-        <div class="notice ok" style="margin-top:18px">Admin bestätigt. Deine Uploads werden direkt in Supabase gespeichert und erscheinen danach automatisch auf der Website.</div>
-      </aside>
+      <section id="rights" class="dashboard-section admin-only hidden">
+        <div class="dashboard-section-heading">
+          <div><span class="eyebrow">ADMIN PANEL</span><h2>Rechte verwalten</h2></div>
+        </div>
+        <div class="admin-tools-grid">
+          <div class="dashboard-card compact-card">
+            <h3>Benutzer suchen</h3>
+            <p class="muted-text">Username eingeben und Admin-Rechte geben oder entfernen.</p>
+            <div class="user-search-row">
+              <input id="userSearchInput" class="form-control" placeholder="Username, z. B. T1ir3d" />
+              <button id="userSearchBtn" class="primary-btn" type="button">Suchen</button>
+            </div>
+            <div id="userSearchNotice" class="notice hidden"></div>
+            <div id="userResults" class="user-results"></div>
+          </div>
+
+          <div class="dashboard-card compact-card">
+            <h3>Was Admin darf</h3>
+            <ul class="permission-list">
+              <li>Alle Schematics bearbeiten und löschen</li>
+              <li>Benutzern Admin-Rechte geben oder entfernen</li>
+              <li>Auch fremde Uploads verwalten</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="dashboard-section-heading subheading">
+          <div><span class="eyebrow">ALLE UPLOADS</span><h2>Globale Verwaltung</h2></div>
+          <span id="allUploadCount" class="result-count">0</span>
+        </div>
+        <div id="allUploadsList" class="manage-list"></div>
+      </section>
     </div>
   </main>
 
