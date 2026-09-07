@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0d0f" />
+  <title>Admin • Schematic Hub</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin-page">
+  <header class="topbar">
+    <a class="brand" href="./">
+      <span class="brand-cube">◆</span>
+      <span>SCHEMATIC <b>HUB</b></span>
+    </a>
+    <nav class="topnav">
+      <a href="./">← Zur Website</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="admin-hero">
+      <p class="eyebrow">OWNER PANEL</p>
+      <h1>Schematic hochladen</h1>
+      <p>Nur ein GitHub-Account mit Schreibrechten auf <strong>Away232323/Shematic-Hub</strong> kann hier wirklich speichern. Dein Token wird nicht in den Website-Dateien gespeichert.</p>
+    </section>
+
+    <div class="admin-layout">
+      <aside class="admin-panel">
+        <h2>GitHub Login</h2>
+        <p class="panel-copy">Für Uploads braucht die Seite einen Fine-grained Personal Access Token mit <strong>Contents: Read and write</strong> nur für dieses Repository.</p>
+
+        <div id="connectionStatus" class="status">
+          <span class="status-dot"></span>
+          <span id="connectionText">Nicht verbunden</span>
+        </div>
+
+        <div class="form-group">
+          <label for="githubToken">Fine-grained Token</label>
+          <input id="githubToken" class="form-control" type="password" autocomplete="off" placeholder="github_pat_..." />
+          <small>Wird nur für diese Browser-Sitzung verwendet.</small>
+        </div>
+
+        <div class="admin-actions">
+          <button id="connectBtn" class="button primary" type="button">Verbinden</button>
+          <button id="logoutBtn" class="button danger hidden" type="button">Logout</button>
+        </div>
+
+        <div class="notice warn">
+          <strong>Wichtig bei Paid:</strong> Bezahlte Dateien werden absichtlich nicht in dieses öffentliche GitHub-Repo hochgeladen. Sonst könnte jeder die Datei direkt aus GitHub ziehen. Für Paid gibst du stattdessen einen Kauf-Link an.
+        </div>
+
+        <p class="admin-note">Empfohlen: Erstelle einen Fine-grained Token, wähle nur dieses Repo aus und gib ausschließlich <strong>Repository permissions → Contents → Read and write</strong>. Gib den Token niemals an andere weiter.</p>
+      </aside>
+
+      <section class="admin-panel">
+        <h2>Neues Schematic</h2>
+        <p class="panel-copy">Free = direkte .litematic-Datei. Paid = Preis + Kauf-Link, damit die Datei nicht öffentlich im Repo liegt.</p>
+
+        <form id="uploadForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="title">Name *</label>
+              <input id="title" class="form-control" required maxlength="80" placeholder="z. B. 3x3 Push Pull Trap" />
+            </div>
+            <div class="form-group">
+              <label for="category">Kategorie *</label>
+              <select id="category" class="form-control" required>
+                <option>Traps</option>
+                <option>Builds</option>
+                <option>Farms</option>
+                <option>Redstone</option>
+                <option>PvP</option>
+                <option>Decoration</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Beschreibung</label>
+            <textarea id="description" class="form-control" maxlength="500" placeholder="Kurz erklären, was die Schematic macht..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="version">Minecraft Version</label>
+              <input id="version" class="form-control" maxlength="20" value="1.21.11" placeholder="1.21.11" />
+            </div>
+            <div class="form-group">
+              <label for="price">Preis (€) *</label>
+              <input id="price" class="form-control" type="number" min="0" max="5" step="0.5" value="0" required />
+              <small>0 = FREE, maximal 5 €.</small>
+            </div>
+          </div>
+
+          <div id="freeFields">
+            <div class="form-group">
+              <label for="schematicFile">Schematic-Datei *</label>
+              <input id="schematicFile" class="form-control" type="file" accept=".litematic,.schem,.schematic" />
+              <small>.litematic, .schem oder .schematic</small>
+            </div>
+          </div>
+
+          <div id="paidFields" class="hidden">
+            <div class="form-group">
+              <label for="purchaseUrl">Kauf-Link *</label>
+              <input id="purchaseUrl" class="form-control" type="url" placeholder="https://..." />
+              <small>Zum Beispiel deine Produktseite. Der Download selbst bleibt dort geschützt.</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="previewFile">Vorschaubild</label>
+            <input id="previewFile" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" />
+            <small>PNG, JPG oder WEBP. Empfohlen: 16:10 oder 16:9.</small>
+          </div>
+
+          <div id="formNotice" class="notice hidden"></div>
+          <div id="progress" class="progress hidden"><div id="progressBar"></div></div>
+
+          <div class="admin-actions">
+            <button id="uploadBtn" class="button primary" type="submit">Schematic veröffentlichen</button>
+            <button id="resetBtn" class="button secondary" type="reset">Zurücksetzen</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
