@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0d0f0e" />
+  <title>Schematic · Schematic Hub</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="community.css" />
+</head>
+<body class="detail-page">
+  <header class="topbar">
+    <div class="nav-shell">
+      <a class="brand" href="./"><span class="brand-icon">S</span><span>SCHEMATIC <b>HUB</b></span></a>
+      <nav class="topnav"><a href="./#schematics">Alle Schematics</a><a id="detailUploadLink" class="hidden" href="admin.html">Upload</a></nav>
+      <div class="nav-account"><a class="secondary-btn" href="./">Zurück</a></div>
+    </div>
+  </header>
+
+  <main class="detail-shell">
+    <a class="detail-back" href="./#schematics">← Zurück zu allen Schematics</a>
+
+    <div id="detailLoading" class="detail-error"><h2>Wird geladen…</h2></div>
+    <div id="detailError" class="detail-error hidden"><h2>Schematic nicht gefunden</h2><p>Der Upload existiert nicht mehr oder ist nicht öffentlich.</p><a class="primary-btn" href="./">Zur Startseite</a></div>
+
+    <div id="detailContent" class="detail-layout hidden">
+      <article class="detail-main">
+        <div class="detail-gallery-main">
+          <img id="mainPreview" class="hidden" alt="Schematic Vorschau" />
+          <div id="detailFallback" class="detail-gallery-fallback">SCHEMATIC</div>
+        </div>
+        <div id="detailThumbs" class="detail-thumbs hidden"></div>
+
+        <div class="detail-content">
+          <div class="detail-badges"><span id="detailCategory" class="detail-badge"></span><span id="detailPrice" class="detail-badge price"></span></div>
+          <h1 id="detailTitle"></h1>
+          <div class="detail-meta-line"><span id="detailAuthor"></span><span id="detailDate"></span></div>
+
+          <div class="detail-description">
+            <h2>Beschreibung</h2>
+            <p id="detailDescription"></p>
+          </div>
+        </div>
+      </article>
+
+      <aside class="detail-side">
+        <section class="detail-side-card">
+          <h3>Schematic Details</h3>
+          <div class="detail-facts">
+            <div class="detail-fact"><span>Minecraft</span><strong id="factVersion"></strong></div>
+            <div class="detail-fact"><span>Datei</span><strong id="factType"></strong></div>
+            <div class="detail-fact"><span>Kategorie</span><strong id="factCategory"></strong></div>
+            <div class="detail-fact"><span>Ersteller</span><strong id="factAuthor"></strong></div>
+          </div>
+        </section>
+
+        <section class="detail-side-card">
+          <a id="detailAction" class="primary-btn detail-cta" target="_blank" rel="noopener">Download</a>
+          <div id="detailOwnerActions" class="detail-edit-actions hidden">
+            <a id="detailEditBtn" class="secondary-btn" href="#">Bearbeiten</a>
+            <button id="detailDeleteBtn" class="mini-btn danger hidden" type="button">Löschen</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div id="lightbox" class="lightbox hidden" aria-hidden="true">
+    <button id="lightboxClose" type="button">×</button>
+    <img id="lightboxImage" alt="Große Vorschau" />
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="schematic.js" defer></script>
+</body>
+</html>
