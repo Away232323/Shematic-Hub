@@ -9,14 +9,17 @@ const state = {
 const grid = document.getElementById('schematicGrid');
 const emptyState = document.getElementById('emptyState');
 const resultCount = document.getElementById('resultCount');
+const heroTotal = document.getElementById('heroTotal');
 const template = document.getElementById('schematicCardTemplate');
 const searchInput = document.getElementById('searchInput');
 const categoryFilter = document.getElementById('categoryFilter');
 const priceFilter = document.getElementById('priceFilter');
 const sortFilter = document.getElementById('sortFilter');
 const chips = [...document.querySelectorAll('.chip')];
+const categoryTiles = [...document.querySelectorAll('[data-cat-target]')];
 
-document.getElementById('year').textContent = new Date().getFullYear();
+const year = document.getElementById('year');
+if (year) year.textContent = new Date().getFullYear();
 
 function money(value) {
   const n = Number(value || 0);
@@ -39,12 +42,10 @@ function resolveAsset(path) {
 
 function filteredSchematics() {
   const query = state.search.trim().toLowerCase();
-  let items = state.schematics.filter(item => {
-    const matchesSearch = !query || [item.title, item.description, item.category, item.minecraftVersion]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-      .includes(query);
+  const items = state.schematics.filter(item => {
+    const haystack = [item.title, item.description, item.category, item.minecraftVersion, item.fileType]
+      .filter(Boolean).join(' ').toLowerCase();
+    const matchesSearch = !query || haystack.includes(query);
     const matchesCategory = state.category === 'all' || item.category === state.category;
     const price = Number(item.price || 0);
     const matchesPrice = state.price === 'all' || (state.price === 'free' ? price <= 0 : price > 0);
@@ -52,22 +53,34 @@ function filteredSchematics() {
   });
 
   items.sort((a, b) => {
-    if (state.sort === 'name') return String(a.title).localeCompare(String(b.title), 'de');
+    if (state.sort === 'name') return String(a.title || '').localeCompare(String(b.title || ''), 'de');
     if (state.sort === 'priceAsc') return Number(a.price || 0) - Number(b.price || 0);
     if (state.sort === 'priceDesc') return Number(b.price || 0) - Number(a.price || 0);
     return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
   });
-
   return items;
+}
+
+function syncCategoryUi() {
+  if (categoryFilter) categoryFilter.value = state.category;
+  chips.forEach(chip => chip.classList.toggle('active', chip.dataset.category === state.category));
+}
+
+function setCategory(category, scroll = false) {
+  state.category = category || 'all';
+  syncCategoryUi();
+  render();
+  if (scroll) document.getElementById('schematics')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function render() {
   const items = filteredSchematics();
   grid.innerHTML = '';
   resultCount.textContent = `${items.length} ${items.length === 1 ? 'Schematic' : 'Schematics'}`;
+  if (heroTotal) heroTotal.textContent = state.schematics.length;
   emptyState.hidden = items.length !== 0;
 
-  for (const item of items) {
+  items.forEach((item, index) => {
     const node = template.content.cloneNode(true);
     const card = node.querySelector('.schematic-card');
     const preview = node.querySelector('.preview');
@@ -83,7 +96,6 @@ function render() {
     node.querySelector('.file-type').textContent = (item.fileType || 'LITEMATIC').toUpperCase();
     category.textContent = item.category || 'Other';
     price.textContent = money(item.price);
-
     if (Number(item.price || 0) > 0) price.classList.add('paid');
 
     if (item.previewPath) {
@@ -105,13 +117,14 @@ function render() {
     } else {
       action.textContent = 'Bald verfügbar';
       action.removeAttribute('href');
-      action.style.opacity = '.55';
+      action.style.opacity = '.5';
       action.style.pointerEvents = 'none';
     }
 
     card.dataset.id = item.id || '';
+    card.style.animationDelay = `${Math.min(index * 45, 300)}ms`;
     grid.appendChild(node);
-  }
+  });
 }
 
 async function loadSchematics() {
@@ -127,20 +140,35 @@ async function loadSchematics() {
   render();
 }
 
-searchInput.addEventListener('input', e => { state.search = e.target.value; render(); });
-categoryFilter.addEventListener('change', e => {
-  state.category = e.target.value;
-  chips.forEach(chip => chip.classList.toggle('active', chip.dataset.category === state.category));
-  render();
-});
-priceFilter.addEventListener('change', e => { state.price = e.target.value; render(); });
-sortFilter.addEventListener('change', e => { state.sort = e.target.value; render(); });
+searchInput?.addEventListener('input', e => { state.search = e.target.value; render(); });
+categoryFilter?.addEventListener('change', e => setCategory(e.target.value));
+priceFilter?.addEventListener('change', e => { state.price = e.target.value; render(); });
+sortFilter?.addEventListener('change', e => { state.sort = e.target.value; render(); });
+chips.forEach(chip => chip.addEventListener('click', () => setCategory(chip.dataset.category)));
+categoryTiles.forEach(tile => tile.addEventListener('click', () => setCategory(tile.dataset.catTarget, true)));
 
-chips.forEach(chip => chip.addEventListener('click', () => {
-  state.category = chip.dataset.category;
-  categoryFilter.value = state.category;
-  chips.forEach(c => c.classList.toggle('active', c === chip));
-  render();
-}));
+document.addEventListener('keydown', event => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault();
+    searchInput?.focus();
+    document.getElementById('schematics')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
+const revealObserver = 'IntersectionObserver' in window
+  ? new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 })
+  : null;
+
+document.querySelectorAll('.reveal').forEach(el => {
+  if (revealObserver) revealObserver.observe(el);
+  else el.classList.add('visible');
+});
 
 loadSchematics();
