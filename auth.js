@@ -16,12 +16,7 @@
   const popoverAdmin = byId('popoverAdmin');
   const SITE_URL = 'https://away232323.github.io/Shematic-Hub/';
 
-  window.schematicHubAuth = {
-    session: null,
-    user: null,
-    profile: null,
-    ready: false
-  };
+  window.schematicHubAuth = { session: null, user: null, profile: null, ready: false };
 
   function showMessage(message, error = false) {
     if (!authMessage) return;
@@ -52,20 +47,14 @@
   }
 
   function setTab(tab) {
-    document.querySelectorAll('[data-auth-tab]').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.authTab === tab);
-    });
+    document.querySelectorAll('[data-auth-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.authTab === tab));
     if (loginForm) loginForm.classList.toggle('hidden', tab !== 'login');
     if (registerForm) registerForm.classList.toggle('hidden', tab !== 'register');
   }
 
   async function getProfile(userId) {
     if (!userId) return null;
-    const { data, error } = await client
-      .from('profiles')
-      .select('username, role')
-      .eq('id', userId)
-      .maybeSingle();
+    const { data, error } = await client.from('profiles').select('username, role').eq('id', userId).maybeSingle();
     if (error) {
       console.error('Profile load failed', error);
       return null;
@@ -76,12 +65,13 @@
   function renderAccount() {
     const state = window.schematicHubAuth;
     const loggedIn = Boolean(state.user);
-    const isAdmin = state.profile?.role === 'admin';
 
     if (authButton) authButton.classList.toggle('hidden', loggedIn);
     if (accountWrap) accountWrap.classList.toggle('hidden', !loggedIn);
-    if (adminNav) adminNav.classList.toggle('hidden', !isAdmin);
-    if (popoverAdmin) popoverAdmin.classList.toggle('hidden', !isAdmin);
+
+    // Uploads sind für jeden Account erlaubt. Admin-Rechte regeln nur globale Verwaltung.
+    if (adminNav) adminNav.classList.toggle('hidden', !loggedIn);
+    if (popoverAdmin) popoverAdmin.classList.toggle('hidden', !loggedIn);
 
     if (!loggedIn) return;
 
@@ -148,7 +138,6 @@
         showMessage('E-Mail oder Passwort ist falsch oder die E-Mail wurde noch nicht bestätigt.', true);
         return;
       }
-
       closeModal();
     });
   }
@@ -173,10 +162,7 @@
       const { data, error } = await client.auth.signUp({
         email,
         password,
-        options: {
-          data: { username },
-          emailRedirectTo: SITE_URL
-        }
+        options: { data: { username }, emailRedirectTo: SITE_URL }
       });
 
       button.disabled = false;
@@ -196,10 +182,7 @@
     });
   }
 
-  client.auth.onAuthStateChange(() => {
-    setTimeout(refreshAuthState, 0);
-  });
-
+  client.auth.onAuthStateChange(() => setTimeout(refreshAuthState, 0));
   refreshAuthState();
 
   const params = new URLSearchParams(location.search);
