@@ -1,13 +1,9 @@
-const OWNER = 'Away232323';
-const REPO = 'Shematic-Hub';
-const BRANCH = 'main';
-const API = 'https://api.github.com';
+const client = window.supaClient;
 
-const tokenInput = document.getElementById('githubToken');
-const connectBtn = document.getElementById('connectBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const connectionStatus = document.getElementById('connectionStatus');
-const connectionText = document.getElementById('connectionText');
+const loading = document.getElementById('adminLoading');
+const denied = document.getElementById('adminDenied');
+const deniedText = document.getElementById('adminDeniedText');
+const content = document.getElementById('adminContent');
 const uploadForm = document.getElementById('uploadForm');
 const uploadBtn = document.getElementById('uploadBtn');
 const priceInput = document.getElementById('price');
@@ -17,114 +13,29 @@ const schematicFileInput = document.getElementById('schematicFile');
 const purchaseUrlInput = document.getElementById('purchaseUrl');
 const previewFileInput = document.getElementById('previewFile');
 const formNotice = document.getElementById('formNotice');
-const progress = document.getElementById('progress');
-const progressBar = document.getElementById('progressBar');
 
-let token = sessionStorage.getItem('schematicHubToken') || '';
-
-function apiHeaders(json = false) {
-  const headers = {
-    Accept: 'application/vnd.github+json',
-    Authorization: `Bearer ${token}`,
-    'X-GitHub-Api-Version': '2022-11-28'
-  };
-  if (json) headers['Content-Type'] = 'application/json';
-  return headers;
-}
-
-function setConnection(connected, text) {
-  connectionStatus.classList.toggle('connected', connected);
-  connectionText.textContent = text;
-  connectBtn.classList.toggle('hidden', connected);
-  logoutBtn.classList.toggle('hidden', !connected);
-  tokenInput.disabled = connected;
-}
+let currentUser = null;
+let currentProfile = null;
 
 function showNotice(message, type = '') {
-  formNotice.className = `notice ${type}`.trim();
   formNotice.textContent = message;
-  formNotice.classList.remove('hidden');
+  formNotice.className = `notice ${type}`.trim();
 }
 
 function hideNotice() {
-  formNotice.classList.add('hidden');
+  formNotice.className = 'notice hidden';
+  formNotice.textContent = '';
 }
 
-function setProgress(percent) {
-  progress.classList.remove('hidden');
-  progressBar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+function slugify(value) {
+  return String(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 55) || 'schematic';
 }
-
-function resetProgress() {
-  progress.classList.add('hidden');
-  progressBar.style.width = '0%';
-}
-
-async function apiFetch(url, options = {}) {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    let message = `GitHub Fehler ${response.status}`;
-    try {
-      const payload = await response.json();
-      if (payload?.message) message += `: ${payload.message}`;
-    } catch (_) {}
-    throw new Error(message);
-  }
-  return response;
-}
-
-async function verifyToken() {
-  if (!token) throw new Error('Bitte zuerst einen GitHub Token eingeben.');
-
-  const userRes = await apiFetch(`${API}/user`, { headers: apiHeaders() });
-  const user = await userRes.json();
-  if (String(user.login).toLowerCase() !== OWNER.toLowerCase()) {
-    throw new Error(`Dieser Admin-Bereich ist aktuell nur für @${OWNER} freigeschaltet.`);
-  }
-
-  const repoRes = await apiFetch(`${API}/repos/${OWNER}/${REPO}`, { headers: apiHeaders() });
-  const repo = await repoRes.json();
-  if (!repo.permissions?.push) {
-    throw new Error('Der Token hat keine Schreibrechte auf das Repository.');
-  }
-
-  return user;
-}
-
-connectBtn.addEventListener('click', async () => {
-  hideNotice();
-  token = tokenInput.value.trim();
-  if (!token) {
-    showNotice('Füge zuerst deinen Fine-grained GitHub Token ein.', 'error');
-    return;
-  }
-
-  connectBtn.disabled = true;
-  connectBtn.textContent = 'Prüfe...';
-  try {
-    const user = await verifyToken();
-    sessionStorage.setItem('schematicHubToken', token);
-    tokenInput.value = '';
-    setConnection(true, `Verbunden als @${user.login}`);
-    showNotice('GitHub verbunden. Du kannst jetzt Schematics veröffentlichen.', 'ok');
-  } catch (error) {
-    token = '';
-    sessionStorage.removeItem('schematicHubToken');
-    setConnection(false, 'Nicht verbunden');
-    showNotice(error.message, 'error');
-  } finally {
-    connectBtn.disabled = false;
-    connectBtn.textContent = 'Verbinden';
-  }
-});
-
-logoutBtn.addEventListener('click', () => {
-  token = '';
-  sessionStorage.removeItem('schematicHubToken');
-  tokenInput.value = '';
-  setConnection(false, 'Nicht verbunden');
-  showNotice('GitHub-Verbindung für diese Sitzung beendet.', 'ok');
-});
 
 function syncPriceFields() {
   const paid = Number(priceInput.value || 0) > 0;
@@ -142,66 +53,42 @@ priceInput.addEventListener('input', () => {
   syncPriceFields();
 });
 
-function slugify(value) {
-  return String(value)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 55) || 'schematic';
-}
-
-function toBase64(arrayBuffer) {
-  const bytes = new Uint8Array(arrayBuffer);
-  let binary = '';
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+async function checkAdmin() {
+  if (!client) {
+    loading.classList.add('hidden');
+    denied.classList.remove('hidden');
+    deniedText.textContent = 'Die Verbindung zum Account-System konnte nicht geladen werden.';
+    return;
   }
-  return btoa(binary);
-}
 
-function utf8ToBase64(text) {
-  const bytes = new TextEncoder().encode(text);
-  return toBase64(bytes.buffer);
-}
+  const { data: { session } } = await client.auth.getSession();
+  currentUser = session?.user || null;
 
-function base64ToUtf8(base64) {
-  const clean = base64.replace(/\s/g, '');
-  const binary = atob(clean);
-  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
+  if (!currentUser) {
+    loading.classList.add('hidden');
+    denied.classList.remove('hidden');
+    deniedText.textContent = 'Du bist nicht angemeldet. Melde dich zuerst auf der Website an.';
+    return;
+  }
 
-async function putRepoFile(path, base64Content, message, sha = null) {
-  const body = {
-    message,
-    content: base64Content,
-    branch: BRANCH
-  };
-  if (sha) body.sha = sha;
+  const { data: profile, error } = await client
+    .from('profiles')
+    .select('username, role')
+    .eq('id', currentUser.id)
+    .maybeSingle();
 
-  const response = await apiFetch(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURI(path)}`, {
-    method: 'PUT',
-    headers: apiHeaders(true),
-    body: JSON.stringify(body)
-  });
-  return response.json();
-}
+  currentProfile = profile || null;
+  loading.classList.add('hidden');
 
-async function uploadBinary(path, file, message) {
-  const buffer = await file.arrayBuffer();
-  return putRepoFile(path, toBase64(buffer), message);
-}
+  if (error || currentProfile?.role !== 'admin') {
+    denied.classList.remove('hidden');
+    deniedText.textContent = 'Dein Account ist angemeldet, hat aber noch keine Admin-Rechte.';
+    return;
+  }
 
-async function getCatalog() {
-  const response = await apiFetch(`${API}/repos/${OWNER}/${REPO}/contents/data/schematics.json?ref=${BRANCH}`, {
-    headers: apiHeaders()
-  });
-  const payload = await response.json();
-  const items = JSON.parse(base64ToUtf8(payload.content || 'W10='));
-  return { items: Array.isArray(items) ? items : [], sha: payload.sha };
+  content.classList.remove('hidden');
+  document.getElementById('adminUsername').textContent = currentProfile.username || 'Owner';
+  document.getElementById('adminEmail').textContent = currentUser.email || '';
 }
 
 function validateFiles(price) {
@@ -220,46 +107,39 @@ function validateFiles(price) {
   }
 
   if (preview && !['image/png', 'image/jpeg', 'image/webp'].includes(preview.type)) {
-    throw new Error('Das Vorschaubild muss PNG, JPG oder WEBP sein.');
+    throw new Error('Das Preview muss PNG, JPG oder WEBP sein.');
   }
   if (preview && preview.size > 5 * 1024 * 1024) {
-    throw new Error('Das Vorschaubild darf maximal 5 MB groß sein.');
+    throw new Error('Das Preview darf maximal 5 MB groß sein.');
   }
 
   return { schematic, preview };
 }
 
+async function uploadPublicFile(bucket, path, file) {
+  const { error } = await client.storage.from(bucket).upload(path, file, {
+    cacheControl: '3600',
+    upsert: false
+  });
+  if (error) throw error;
+  const { data } = client.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
+}
+
 uploadForm.addEventListener('submit', async event => {
   event.preventDefault();
   hideNotice();
-  resetProgress();
 
-  try {
-    await verifyToken();
-  } catch (error) {
-    showNotice(`${error.message} Verbinde zuerst GitHub.`, 'error');
-    return;
-  }
-
+  const price = Number(priceInput.value || 0);
   const title = document.getElementById('title').value.trim();
   const category = document.getElementById('category').value;
   const description = document.getElementById('description').value.trim();
-  const minecraftVersion = document.getElementById('version').value.trim();
-  const price = Number(priceInput.value || 0);
+  const minecraftVersion = document.getElementById('version').value.trim() || '1.21.11';
   const purchaseUrl = purchaseUrlInput.value.trim();
 
-  if (!title) {
-    showNotice('Gib einen Namen für die Schematic ein.', 'error');
-    return;
-  }
-  if (price < 0 || price > 5) {
-    showNotice('Der Preis muss zwischen 0 € und 5 € liegen.', 'error');
-    return;
-  }
-  if (price > 0 && !purchaseUrl) {
-    showNotice('Bei Paid brauchst du einen Kauf-Link.', 'error');
-    return;
-  }
+  if (!title) return showNotice('Gib einen Namen ein.', 'error');
+  if (price < 0 || price > 5) return showNotice('Der Preis muss zwischen 0 € und 5 € liegen.', 'error');
+  if (price > 0 && !purchaseUrl) return showNotice('Bei Paid brauchst du einen Kauf-Link.', 'error');
 
   let files;
   try {
@@ -270,66 +150,49 @@ uploadForm.addEventListener('submit', async event => {
   }
 
   uploadBtn.disabled = true;
-  uploadBtn.textContent = 'Veröffentliche...';
+  uploadBtn.textContent = 'Wird veröffentlicht...';
 
   try {
-    const now = new Date();
-    const id = `${slugify(title)}-${Date.now()}`;
-    let downloadPath = '';
-    let previewPath = '';
+    const baseSlug = slugify(title);
+    const unique = Date.now().toString(36);
+    const slug = `${baseSlug}-${unique}`;
+
+    let previewUrl = null;
+    let downloadUrl = null;
     let fileType = 'LITEMATIC';
 
-    setProgress(8);
+    if (files.preview) {
+      const ext = files.preview.name.split('.').pop().toLowerCase();
+      previewUrl = await uploadPublicFile('previews', `${slug}.${ext}`, files.preview);
+    }
 
     if (price <= 0 && files.schematic) {
       const ext = files.schematic.name.split('.').pop().toLowerCase();
       fileType = ext.toUpperCase();
-      downloadPath = `schematics/${id}.${ext}`;
-      setProgress(18);
-      await uploadBinary(downloadPath, files.schematic, `Upload schematic: ${title}`);
-      setProgress(47);
+      downloadUrl = await uploadPublicFile('schematics', `${slug}.${ext}`, files.schematic);
     }
 
-    if (files.preview) {
-      const extMap = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
-      const ext = extMap[files.preview.type] || 'png';
-      previewPath = `previews/${id}.${ext}`;
-      await uploadBinary(previewPath, files.preview, `Upload preview: ${title}`);
-    }
-
-    setProgress(67);
-    const catalog = await getCatalog();
-
-    const item = {
-      id,
+    const { error } = await client.from('schematics').insert({
       title,
-      description,
+      slug,
       category,
+      description,
+      minecraft_version: minecraftVersion,
       price,
-      minecraftVersion,
-      fileType,
-      downloadPath,
-      purchaseUrl: price > 0 ? purchaseUrl : '',
-      previewPath,
-      createdAt: now.toISOString(),
-      author: OWNER
-    };
+      file_type: fileType,
+      download_url: downloadUrl,
+      preview_url: previewUrl,
+      purchase_url: price > 0 ? purchaseUrl : null,
+      created_by: currentUser.id,
+      published: true
+    });
 
-    const nextItems = [item, ...catalog.items];
-    const json = `${JSON.stringify(nextItems, null, 2)}\n`;
+    if (error) throw error;
 
-    setProgress(82);
-    await putRepoFile(
-      'data/schematics.json',
-      utf8ToBase64(json),
-      `Publish schematic: ${title}`,
-      catalog.sha
-    );
-
-    setProgress(100);
-    showNotice(`„${title}“ wurde veröffentlicht. GitHub Pages kann kurz brauchen, bis die Änderung live ist.`, 'ok');
+    showNotice('Schematic wurde veröffentlicht und ist jetzt auf der Website sichtbar.', 'ok');
     uploadForm.reset();
-    priceInput.value = '0';
+    priceInput.value = 0;
+    document.getElementById('version').value = '1.21.11';
     syncPriceFields();
   } catch (error) {
     console.error(error);
@@ -337,32 +200,8 @@ uploadForm.addEventListener('submit', async event => {
   } finally {
     uploadBtn.disabled = false;
     uploadBtn.textContent = 'Schematic veröffentlichen';
-    setTimeout(resetProgress, 1600);
   }
 });
 
-uploadForm.addEventListener('reset', () => {
-  setTimeout(() => {
-    priceInput.value = '0';
-    document.getElementById('version').value = '1.21.11';
-    syncPriceFields();
-    hideNotice();
-    resetProgress();
-  }, 0);
-});
-
-(async function init() {
-  syncPriceFields();
-  if (!token) {
-    setConnection(false, 'Nicht verbunden');
-    return;
-  }
-  try {
-    const user = await verifyToken();
-    setConnection(true, `Verbunden als @${user.login}`);
-  } catch (_) {
-    token = '';
-    sessionStorage.removeItem('schematicHubToken');
-    setConnection(false, 'Nicht verbunden');
-  }
-})();
+syncPriceFields();
+checkAdmin();
