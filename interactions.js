@@ -43,7 +43,7 @@
       if (!Ctx) return;
       audioCtx = new Ctx();
       master = audioCtx.createGain();
-      master.gain.value = 0.9;
+      master.gain.value = 1.2;
       master.connect(audioCtx.destination);
     }
     if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
@@ -73,16 +73,16 @@
   function playHover() {
     unlockAudio();
     if (!audioCtx || audioCtx.state !== 'running') return;
-    softTone({freq:510,endFreq:690,duration:.085,volume:.09,type:'sine'});
-    softTone({freq:760,endFreq:880,duration:.07,volume:.035,type:'triangle',delay:.018});
+    softTone({freq:510,endFreq:690,duration:.085,volume:.115,type:'sine'});
+    softTone({freq:760,endFreq:880,duration:.07,volume:.045,type:'triangle',delay:.018});
   }
 
   function playClick() {
     unlockAudio();
     if (!audioCtx || audioCtx.state !== 'running') return;
-    softTone({freq:410,endFreq:590,duration:.10,volume:.13,type:'sine'});
-    softTone({freq:820,endFreq:650,duration:.12,volume:.055,type:'triangle',delay:.025});
-    softTone({freq:1180,endFreq:980,duration:.055,volume:.027,type:'sine',delay:.045});
+    softTone({freq:410,endFreq:590,duration:.10,volume:.17,type:'sine'});
+    softTone({freq:820,endFreq:650,duration:.12,volume:.075,type:'triangle',delay:.025});
+    softTone({freq:1180,endFreq:980,duration:.055,volume:.035,type:'sine',delay:.045});
   }
 
   function makeSoundToggle() {
