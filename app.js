@@ -9,17 +9,13 @@ const state = {
 const grid = document.getElementById('schematicGrid');
 const emptyState = document.getElementById('emptyState');
 const resultCount = document.getElementById('resultCount');
-const heroTotal = document.getElementById('heroTotal');
 const template = document.getElementById('schematicCardTemplate');
 const searchInput = document.getElementById('searchInput');
 const categoryFilter = document.getElementById('categoryFilter');
 const priceFilter = document.getElementById('priceFilter');
 const sortFilter = document.getElementById('sortFilter');
-const chips = [...document.querySelectorAll('.chip')];
-const categoryTiles = [...document.querySelectorAll('[data-cat-target]')];
 
-const year = document.getElementById('year');
-if (year) year.textContent = new Date().getFullYear();
+document.getElementById('year').textContent = new Date().getFullYear();
 
 function money(value) {
   const n = Number(value || 0);
@@ -29,60 +25,41 @@ function money(value) {
 
 function formatDate(value) {
   if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function resolveAsset(path) {
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-  return path.replace(/^\//, '');
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function filteredSchematics() {
   const query = state.search.trim().toLowerCase();
   const items = state.schematics.filter(item => {
-    const haystack = [item.title, item.description, item.category, item.minecraftVersion, item.fileType]
+    const haystack = [item.title, item.description, item.category, item.minecraft_version]
       .filter(Boolean).join(' ').toLowerCase();
     const matchesSearch = !query || haystack.includes(query);
     const matchesCategory = state.category === 'all' || item.category === state.category;
-    const price = Number(item.price || 0);
-    const matchesPrice = state.price === 'all' || (state.price === 'free' ? price <= 0 : price > 0);
+    const p = Number(item.price || 0);
+    const matchesPrice = state.price === 'all' || (state.price === 'free' ? p <= 0 : p > 0);
     return matchesSearch && matchesCategory && matchesPrice;
   });
 
   items.sort((a, b) => {
-    if (state.sort === 'name') return String(a.title || '').localeCompare(String(b.title || ''), 'de');
+    if (state.sort === 'name') return String(a.title).localeCompare(String(b.title), 'de');
     if (state.sort === 'priceAsc') return Number(a.price || 0) - Number(b.price || 0);
     if (state.sort === 'priceDesc') return Number(b.price || 0) - Number(a.price || 0);
-    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    return new Date(b.created_at || 0) - new Date(a.created_at || 0);
   });
   return items;
-}
-
-function syncCategoryUi() {
-  if (categoryFilter) categoryFilter.value = state.category;
-  chips.forEach(chip => chip.classList.toggle('active', chip.dataset.category === state.category));
-}
-
-function setCategory(category, scroll = false) {
-  state.category = category || 'all';
-  syncCategoryUi();
-  render();
-  if (scroll) document.getElementById('schematics')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function render() {
   const items = filteredSchematics();
   grid.innerHTML = '';
   resultCount.textContent = `${items.length} ${items.length === 1 ? 'Schematic' : 'Schematics'}`;
-  if (heroTotal) heroTotal.textContent = state.schematics.length;
+  document.getElementById('heroTotal').textContent = state.schematics.length;
   emptyState.hidden = items.length !== 0;
 
-  items.forEach((item, index) => {
+  for (const item of items) {
     const node = template.content.cloneNode(true);
-    const card = node.querySelector('.schematic-card');
     const preview = node.querySelector('.preview');
     const fallback = node.querySelector('.preview-fallback');
     const category = node.querySelector('.category-badge');
@@ -91,15 +68,16 @@ function render() {
 
     node.querySelector('.title').textContent = item.title || 'Unnamed Schematic';
     node.querySelector('.description').textContent = item.description || 'Minecraft Schematic';
-    node.querySelector('.version').textContent = item.minecraftVersion ? `MC ${item.minecraftVersion}` : 'MINECRAFT';
-    node.querySelector('.date').textContent = formatDate(item.createdAt);
-    node.querySelector('.file-type').textContent = (item.fileType || 'LITEMATIC').toUpperCase();
+    node.querySelector('.version').textContent = item.minecraft_version ? `MC ${item.minecraft_version}` : 'MINECRAFT';
+    node.querySelector('.date').textContent = formatDate(item.created_at);
+    node.querySelector('.file-type').textContent = (item.file_type || 'LITEMATIC').toUpperCase();
     category.textContent = item.category || 'Other';
     price.textContent = money(item.price);
+
     if (Number(item.price || 0) > 0) price.classList.add('paid');
 
-    if (item.previewPath) {
-      preview.src = resolveAsset(item.previewPath);
+    if (item.preview_url) {
+      preview.src = item.preview_url;
       preview.alt = `${item.title || 'Schematic'} Vorschau`;
       preview.addEventListener('load', () => fallback.classList.add('hidden'));
       preview.addEventListener('error', () => preview.classList.add('hidden'));
@@ -107,13 +85,13 @@ function render() {
       preview.classList.add('hidden');
     }
 
-    if (Number(item.price || 0) <= 0 && item.downloadPath) {
-      action.textContent = 'Download ↓';
-      action.href = resolveAsset(item.downloadPath);
+    if (Number(item.price || 0) <= 0 && item.download_url) {
+      action.textContent = 'Download';
+      action.href = item.download_url;
       action.setAttribute('download', '');
-    } else if (Number(item.price || 0) > 0 && item.purchaseUrl) {
-      action.textContent = `Kaufen ${money(item.price)}`;
-      action.href = item.purchaseUrl;
+    } else if (Number(item.price || 0) > 0 && item.purchase_url) {
+      action.textContent = `Kaufen · ${money(item.price)}`;
+      action.href = item.purchase_url;
     } else {
       action.textContent = 'Bald verfügbar';
       action.removeAttribute('href');
@@ -121,54 +99,84 @@ function render() {
       action.style.pointerEvents = 'none';
     }
 
-    card.dataset.id = item.id || '';
-    card.style.animationDelay = `${Math.min(index * 45, 300)}ms`;
     grid.appendChild(node);
-  });
+  }
+}
+
+async function loadFromSupabase() {
+  if (!window.supaClient) throw new Error('Supabase client missing');
+  const { data, error } = await window.supaClient
+    .from('schematics')
+    .select('*')
+    .eq('published', true)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+async function loadLegacyFallback() {
+  const response = await fetch(`data/schematics.json?t=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) return [];
+  const data = await response.json();
+  if (!Array.isArray(data)) return [];
+  return data.map(item => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    category: item.category,
+    minecraft_version: item.minecraftVersion,
+    price: item.price,
+    file_type: item.fileType,
+    download_url: item.downloadPath,
+    preview_url: item.previewPath,
+    purchase_url: item.purchaseUrl,
+    created_at: item.createdAt,
+    published: true
+  }));
 }
 
 async function loadSchematics() {
   try {
-    const response = await fetch(`data/schematics.json?t=${Date.now()}`, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    state.schematics = Array.isArray(data) ? data : [];
+    state.schematics = await loadFromSupabase();
   } catch (error) {
-    console.error('Could not load schematics:', error);
-    state.schematics = [];
+    console.error('Supabase catalog failed, using fallback', error);
+    try { state.schematics = await loadLegacyFallback(); }
+    catch (_) { state.schematics = []; }
   }
   render();
 }
 
-searchInput?.addEventListener('input', e => { state.search = e.target.value; render(); });
-categoryFilter?.addEventListener('change', e => setCategory(e.target.value));
-priceFilter?.addEventListener('change', e => { state.price = e.target.value; render(); });
-sortFilter?.addEventListener('change', e => { state.sort = e.target.value; render(); });
-chips.forEach(chip => chip.addEventListener('click', () => setCategory(chip.dataset.category)));
-categoryTiles.forEach(tile => tile.addEventListener('click', () => setCategory(tile.dataset.catTarget, true)));
+searchInput.addEventListener('input', event => {
+  state.search = event.target.value;
+  render();
+});
+categoryFilter.addEventListener('change', event => {
+  state.category = event.target.value;
+  render();
+});
+priceFilter.addEventListener('change', event => {
+  state.price = event.target.value;
+  render();
+});
+sortFilter.addEventListener('change', event => {
+  state.sort = event.target.value;
+  render();
+});
+
+document.querySelectorAll('[data-cat-target]').forEach(button => {
+  button.addEventListener('click', () => {
+    state.category = button.dataset.catTarget;
+    categoryFilter.value = state.category;
+    document.getElementById('schematics').scrollIntoView({ behavior: 'smooth' });
+    render();
+  });
+});
 
 document.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
-    searchInput?.focus();
-    document.getElementById('schematics')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    searchInput.focus();
   }
-});
-
-const revealObserver = 'IntersectionObserver' in window
-  ? new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12 })
-  : null;
-
-document.querySelectorAll('.reveal').forEach(el => {
-  if (revealObserver) revealObserver.observe(el);
-  else el.classList.add('visible');
 });
 
 loadSchematics();
