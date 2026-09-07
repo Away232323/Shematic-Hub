@@ -73,6 +73,7 @@ function render() {
     const price = node.querySelector('.price-badge');
     const action = node.querySelector('.card-action');
 
+    card.dataset.schematicId = item.id;
     node.querySelector('.title').textContent = item.title || 'Unnamed Schematic';
     node.querySelector('.description').textContent = item.description || 'Minecraft Schematic';
     node.querySelector('.version').textContent = item.minecraft_version ? `MC ${item.minecraft_version}` : 'MINECRAFT';
@@ -112,7 +113,9 @@ function render() {
     card.setAttribute('aria-label', `${item.title || 'Schematic'} ansehen`);
     const openDetails = event => {
       if (event?.target?.closest?.('.card-action')) return;
-      location.href = `schematic.html?id=${encodeURIComponent(item.id)}`;
+      const url = `schematic.html?id=${encodeURIComponent(item.id)}`;
+      if (window.hubNavigate) window.hubNavigate(url);
+      else location.href = url;
     };
     card.addEventListener('click', openDetails);
     card.addEventListener('keydown', event => {
