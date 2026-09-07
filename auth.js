@@ -14,6 +14,7 @@
   const logoutButton = byId('logoutButton');
   const adminNav = byId('adminNav');
   const popoverAdmin = byId('popoverAdmin');
+  const SITE_URL = 'https://away232323.github.io/Shematic-Hub/';
 
   window.schematicHubAuth = {
     session: null,
@@ -144,7 +145,7 @@
       button.textContent = 'Anmelden';
 
       if (error) {
-        showMessage('E-Mail oder Passwort ist falsch.', true);
+        showMessage('E-Mail oder Passwort ist falsch oder die E-Mail wurde noch nicht bestätigt.', true);
         return;
       }
 
@@ -172,7 +173,10 @@
       const { data, error } = await client.auth.signUp({
         email,
         password,
-        options: { data: { username } }
+        options: {
+          data: { username },
+          emailRedirectTo: SITE_URL
+        }
       });
 
       button.disabled = false;
